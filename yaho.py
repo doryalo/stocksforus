@@ -19,9 +19,12 @@ def get_stock_history(stock_name, start_analyze_datetime, end_analyze_datetime):
 
 def get_stock_change_from_day_after_start(stock_history, start_analyze_datetime):
     one_day_after_alert = (start_analyze_datetime + timedelta(days=1)).date()
-    day_after_alert_open_price = float(stock_history.loc[one_day_after_alert, 'open'])
-    stock_history['price_change_from_day_after_alert'] = stock_history['close'].apply(
-        lambda daily_price: calculate_price_percentage_diff(day_after_alert_open_price, daily_price))
+    if one_day_after_alert in stock_history.index:
+        day_after_alert_open_price = float(stock_history.loc[one_day_after_alert, 'open'])
+        stock_history['price_change_from_day_after_alert'] = stock_history['close'].apply(
+            lambda daily_price: calculate_price_percentage_diff(day_after_alert_open_price, daily_price))
+    else:
+        stock_history = pd.DataFrame()
     return stock_history
 
 

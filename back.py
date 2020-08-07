@@ -24,7 +24,6 @@ class BuySellSaver(object):
 
     @staticmethod
     def pretty_print(buy_sell_dict, stock_name):
-        print('here')
         for key, dic in buy_sell_dict.items():
             buy, sell = dic['trend_up'], dic['trend_down']
             print('[{}] trend_up date: {} trend_down date: {}'.format(stock_name, buy, sell))
@@ -79,14 +78,15 @@ def alert_stocks_sma_crossing(stocks, slow_sma=None, fast_sma=None):
         SmaCross.params.pfast = fast
         SmaCross.params.pslow = slow
 
-    cerebro = bt.Cerebro()  # create a "Cerebro" engine instance
     stocks_dict_bss = {}
-    for stock in stocks:
+    for idx, stock in enumerate(stocks):
         try:
+            print('attempting to analyze {}, stock number {}'.format(stock, idx))
             exc=False
+            cerebro = bt.Cerebro()  # create a "Cerebro" engine instance
             data = bt.feeds.YahooFinanceData(dataname=stock,
                                              fromdate=datetime(year=2020, month=1, day=1),
-                                             todate=datetime(year=2020, month=8, day=5))
+                                             todate=datetime(year=2020, month=8, day=6))
             cerebro.adddata(data)  # Add the data feed
             SmaCross.initialize_bss()
             cerebro.addstrategy(SmaCross)  # Add the trading strategy
@@ -95,7 +95,6 @@ def alert_stocks_sma_crossing(stocks, slow_sma=None, fast_sma=None):
             stocks_dict_bss[stock] = results
             BuySellSaver.pretty_print(stock_name=stock, buy_sell_dict=results)
         except Exception as e:
-            cerebro = bt.Cerebro()  # create a "Cerebro" engine instance
             print('error with {}: {}'.format(stock, e))
             exc = True
         if exc:
@@ -106,31 +105,35 @@ def alert_stocks_sma_crossing(stocks, slow_sma=None, fast_sma=None):
 if __name__ == '__main__':
     cmd_stock, slow, fast = get_cmd_params()
     if not cmd_stock:
-        # tier1 = ['AAPL', 'AMZN', 'GOOGL', 'FB', 'AMD', "LDOS", 'AIG', 'IPGP', 'DDOG']
+        tier1 = ['AAPL', 'AMZN', 'GOOGL', 'FB', 'AMD', "LDOS", 'AIG', 'IPGP', 'DDOG']
         # tier2 = ['TSLA', 'NIO', 'V', 'MSFT', 'WMT', 'JNJ', 'HD', 'NVDA', 'VZ', "NKE", 'CVX', 'TMO', 'TM']
-        # tier3 = ['KO', 'CSCO', 'INTC', 'DIS']
+        tier3 = ['ADTN', 'ADBE']
+
         # tier4 = ['CMCSA', 'CMCL', 'TMUS', 'DRD', 'ASR.TO', 'WPM']
         # tier5 = ['ABB', 'ABBV', 'ABC', 'ABCB', 'SNAP']
-        # all_nasdaq_stocks = list(pd.read_csv('/home/yoni/PycharmProjects/pythonProject/companylist.csv').Symbol)
+        all_nasdaq_stocks = list(pd.read_csv('/home/yoni/PycharmProjects/pythonProject/companylist.csv').Symbol)
         # stocks = all_nasdaq_stocks[140:]
-        stocks = ['FB','AMZN', 'AMD', 'GOOGL', 'ARM', 'NVDA', 'YNDX', 'MSFT', 'AAPL', 'CMCL', 'CMCSA', 'ABB', 'ABBV', 'ABC',
-                  'ABCB','SNAP','VZ', 'ASR.TO', 'WPM']
-        tier2_stocks = ['BMCH', 'EXPE', 'DRIO', 'XBIT', 'BLUE', ] #some airlines and biotech
-        stocks = tier2_stocks
+        # stocks = ['FB','AMZN', 'AMD', 'GOOGL', 'ARM', 'NVDA', 'YNDX', 'MSFT', 'AAPL', 'CMCL', 'CMCSA', 'ABB', 'ABBV', 'ABC',
+        #           'ABCB','SNAP','VZ', 'ASR.TO', 'WPM']
+        # tier2_stocks = ['BMCH', 'EXPE', 'DRIO', 'XBIT', 'BLUE', ] #some airlines and biotech
+        stocks = all_nasdaq_stocks[60:]
+        # stocks = tier3
     else:
         stocks = cmd_stock
 
-    stocks_bss_dict_5_20 = alert_stocks_sma_crossing(stocks, 5, 20)
+    # stocks = ['CTAS', 'CINF', 'BMCH','BLUE', 'CMPR', 'CBNK', 'CCBG', 'CPLP', 'CSWC']
+    # stocks_bss_dict_5_20 = alert_stocks_sma_crossing(stocks, 5, 20)
     # stocks_bss_dict_5_10 = alert_stocks_sma_crossing(stocks, 5, 10)
     stocks_bss_dict_20_50 = alert_stocks_sma_crossing(stocks, 20, 50)
     # stocks_bss_dict_10_50 = alert_stocks_sma_crossing(stocks, 10, 50)
-    stocks_bss_dict_50_100 = alert_stocks_sma_crossing(stocks, 50, 100)
-    # stocks_bss_dict_50_200 = alert_stocks_sma_crossing(stocks, 50, 200)
+    # stocks_bss_dict_50_100 = alert_stocks_sma_crossing(stocks, 50, 100)
+    stocks_bss_dict_50_200 = alert_stocks_sma_crossing(stocks, 50, 200)
+
     all_measured_smas = {'20_50': stocks_bss_dict_20_50,
            # '10_50':stocks_bss_dict_10_50,
-           '5_20':stocks_bss_dict_5_20,
-           # '50_200': stocks_bss_dict_50_200,
-           '50_100': stocks_bss_dict_50_100}
+           # '5_20':stocks_bss_dict_5_20,
+           '50_200': stocks_bss_dict_50_200,}
+           # '50_100': stocks_bss_dict_50_100}
     rates_for_day_count = pd.DataFrame()
     days_count_to_check = [i for i in range(1, 20)]
 
@@ -140,17 +143,19 @@ if __name__ == '__main__':
                 analysis_start_datetime = bss['trend_up']
                 analysis_end_datetime = analysis_start_datetime + timedelta(days=max(days_count_to_check) + 1)
                 result = run_analysis(stock, analysis_start_datetime, analysis_end_datetime)
-
-                for days_to_check in days_count_to_check:
-                    try:
+                if not result.empty:
+                    for days_to_check in days_count_to_check:
                         days_to_check_date = (analysis_start_datetime + timedelta(days=days_to_check)).date()
-                        change_after = result.loc[days_to_check_date, 'price_change_from_day_after_alert']
-                    except KeyError:
-                        print('couldnt find day count - {} for {}'.format(days_to_check, stock))
-                    else:
-                        df = pd.DataFrame({'stock_name':[stock], 'days_count_from_alert':[days_to_check], 'date':[days_to_check_date],
-                                           'alert_time': analysis_start_datetime, 'change_in_percentage': [change_after],
-                                           'measured_smas': measured_smas})
-                        rates_for_day_count = pd.concat([rates_for_day_count, df], ignore_index=True)
+                        if days_to_check_date in result.index:
+                            change_after = result.loc[days_to_check_date, 'price_change_from_day_after_alert']
+                            df = pd.DataFrame({'stock_name': [stock], 'days_count_from_alert': [days_to_check],
+                                               'date': [days_to_check_date],
+                                               'alert_time': analysis_start_datetime,
+                                               'change_in_percentage': [change_after],
+                                               'measured_smas': measured_smas})
+                            rates_for_day_count = pd.concat([rates_for_day_count, df], ignore_index=True)
+                        else:
+                            print('couldnt find day count - {} for {}'.format(days_to_check, stock))
+
     rates_for_day_count.drop_duplicates(inplace=True)
     print(rates_for_day_count)
