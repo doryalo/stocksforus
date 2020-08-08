@@ -104,33 +104,42 @@ def alert_stocks_sma_crossing(stocks, slow_sma=None, fast_sma=None):
     return stocks_dict_bss
 
 
-def get_optimal_day_range(rates_for_day_count):
+def get_day_range_statistics(rates_for_day_count):
     df = rates_for_day_count.copy()
     grouped_by_day_count = df.groupby('days_count_from_alert', as_index=False)
-    avg = grouped_by_day_count.agg({'change_in_percentage': pd.np.mean}).rename(columns={'change_in_percentage': 'mean'})
-    median = grouped_by_day_count.agg({'change_in_percentage': pd.np.median}).rename(columns={'change_in_percentage': 'median'})
+    avg = grouped_by_day_count.agg({'change_in_percentage': pd.np.mean}).rename(columns={'change_in_percentage': 'mean_change'})
+    median = grouped_by_day_count.agg({'change_in_percentage': pd.np.median}).rename(columns={'change_in_percentage': 'median_change'})
     sumed = grouped_by_day_count.agg({'change_in_percentage': pd.np.sum}).rename(columns={'change_in_percentage': 'sum'})
+    group_lengths = grouped_by_day_count.size().reset_index(name='datapoints_count')
     merged = pd.merge(avg, median, on='days_count_from_alert')
+    merged = pd.merge(merged, group_lengths, on='days_count_from_alert')
     fully_merged = pd.merge(merged, sumed, on='days_count_from_alert')
     return fully_merged
 
 
-def get_day_range_precision(rates_for_day_count, percentage_th=3):
+def get_day_range_precision(rates_for_day_count, day_range_stats):
     def calculate_group_precision(group):
         days_count = group.days_count_from_alert.iloc[0]
-        gte_percentage_th = group.change_in_percentage >= percentage_th
-        lt_percentage_th = group.change_in_percentage < percentage_th
-        tp_count = float(group.loc[gte_percentage_th].shape[0])
-        fp_count = group.loc[lt_percentage_th].shape[0]
-        try:
-            precision = tp_count / tp_count + fp_count
-        except Exception as e:
-            print('failed to calcuate precision.')
-            precision = pd.np.nan
+        group_stats = {
+            'mean': group['mean_change'].iloc[0],
+            'median': group['median_change'].iloc[0]
+        }
+        precision_df = pd.DataFrame({'days_count_from_alert': [days_count]})
+        for stat_name, value in group_stats.items():
+            gte_percentage_th = group.change_in_percentage >= value
+            lt_percentage_th = group.change_in_percentage < value
+            tp_count = float(group.loc[gte_percentage_th].shape[0])
+            fp_count = group.loc[lt_percentage_th].shape[0]
+            try:
+                precision = tp_count / (tp_count + fp_count)
+            except Exception as e:
+                print('failed to calcuate precision.')
+                precision = pd.np.nan
+            precision_df['precision_{}'.format(stat_name)] = precision
+        return precision_df
 
-        return pd.DataFrame({'days_count': [days_count], 'precision': [precision]})
-
-    precision = rates_for_day_count.groupby('days_count_from_alert', as_index=False).apply(calculate_group_precision)
+    merged = pd.merge(rates_for_day_count, day_range_stats, on='days_count_from_alert')
+    precision = merged.groupby('days_count_from_alert', as_index=False).apply(calculate_group_precision)
     return precision
 
 
@@ -138,6 +147,22 @@ if __name__ == '__main__':
     cmd_stock, slow, fast = get_cmd_params()
     if not cmd_stock:
         tier1 = ['TSMC','DRIO','AAPL', 'AMZN', 'GOOGL', 'FB', 'AMD', "LDOS", 'AIG', 'IPGP', 'DDOG', 'AMD']
+        bigs = ['AAPL', 'AMD', 'FB', 'GOOGL', 'NVDA', 'COKE',
+                'MSFT', 'NTFLX', 'AMZN', 'PEP', 'ADBE', 'CMCSA',
+                'CSCO', 'AVGO', 'AMGN', 'TXN', 'SBUX', 'CHTR', 'DIS']
+
+        most_viewed_by_anaylsts = [
+            'AMD',
+            'TSLA',
+            'AMZN',
+            'AAPL',
+            'ZNGA',
+            'NVDA',
+            'MSFT',
+            'JD',
+            'CSCO',
+            'FB'
+        ]
         # tier2 = ['MSFT', 'WMT', 'NVDA', 'VZ',
         #         'DAL', 'LIAUTO', 'AAL', 'AVIS', 'RCL', 'KL', 'LMND', 'BA', 'AC']
         # tier3 = ['ADTN', 'ADBE']
@@ -153,8 +178,8 @@ if __name__ == '__main__':
         # stocks = tier3
     else:
         stocks = cmd_stock
-
-    stocks = tier1
+    #
+    # stocks = ['BMCH']
     # stocks = ['CTAS', 'CINF', 'BMCH','BLUE', 'CMPR', 'CBNK', 'CCBG', 'CPLP', 'CSWC']
     # stocks = tier1 + tier2
     # stocks_bss_dict_13_26 = alert_stocks_sma_crossing(stocks, 13, 26)
@@ -170,7 +195,7 @@ if __name__ == '__main__':
            # '50_200': stocks_bss_dict_50_200,}
            # '50_100': stocks_bss_dict_50_100}
     rates_for_day_count = pd.DataFrame()
-    days_count_to_check = [i for i in range(1, 20)]
+    days_count_to_check = [i for i in range(1, 35)]
 
     for measured_smas, results in all_measured_smas.items():
         for stock, stocks_bss in results.items():
@@ -201,11 +226,13 @@ if __name__ == '__main__':
 
 
     rates_for_day_count.drop_duplicates(inplace=True)
-    day_range_precision = get_day_range_precision(rates_for_day_count, percentage_th=1)
-    day_range_stats = get_optimal_day_range(rates_for_day_count)
+    day_range_stats = get_day_range_statistics(rates_for_day_count)
+    day_range_precision = get_day_range_precision(rates_for_day_count, day_range_stats)
+    day_range_result = pd.merge(day_range_stats, day_range_precision, on='days_count_from_alert')
 
     timestamp = int(time.time())
     day_range_stats.to_pickle('archive/day_range_stats_{}.pkl'.format(timestamp))
+    day_range_result.to_pickle('archive/day_range_result_{}.pkl'.format(timestamp))
     rates_for_day_count.to_pickle('archive/rates_for_day_count_{}.pkl'.format(timestamp))
     day_range_precision.to_pickle('archive/day_range_precision_{}.pkl'.format(timestamp))
 
