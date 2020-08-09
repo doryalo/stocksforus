@@ -1,0 +1,64 @@
+Sector,Name,Symbol
+Retail,Walmart,WMT
+Retail,Amazon,AMZN
+Retail,Costco,COST
+Retail,Kroger,KR
+Retail,The Home Depot,HD
+Retail,Target,TGT
+Retail,Lowe's,LOW
+Retail,Procter & Gamble,PG
+Retail,Dollar Tree,DLTR
+Retail,Best Buy ,BBY
+Retail,TJX,TJX
+Retail,Dollar General,DG
+Oil & Gas,Exxon Mobile,XOM
+Oil & Gas,Chevron,CVX
+Oil & Gas,Marathon Petrolium,MPC
+Oil & Gas,Phillips 66,PSX
+Oil & Gas,Valero,VLO
+Oil & Gas,ConocoPhillips,COP
+Telecom,AT&T,T
+Telecom,Verizon,VZ
+Telecom,Comcast,CMCSA
+Telecom,Cisco,CSCO
+Telecom,Charter Communicatios,CHTR
+Telecom,Dish Network,DISH
+Telecom,Altice USA,ATUS
+Tech,Alphabet,GOOGL
+Tech,Microsoft,MSFT
+Tech,Dell,DELL
+Tech,IBM,IBM
+Tech,Intel,INTC
+Tech,Facebook,FB
+Tech,HP Inc,HPQ
+Tech,Netflix,NFLX
+Tech,Salesforce,CRM
+Tech,Uber,UBER
+Tech,Expedia,EXPE
+Tech,Adobe,ADBE
+Healthcare,CVS Health ,CVS
+Healthcare,UnitedHealth Group,UNH
+Healthcare,McKesson,MCK
+Healthcare,Cardinal Health,CAH
+Healthcare,Anthem,ANTM
+Healthcare,Cnetene,CNC
+Healthcare,HCA Healthcare,HCA
+Healthcare,Cigna,CI
+Biotech & Pharma,Rogers Corporation,ROG
+Biotech & Pharma,Novartis,NOVN
+Biotech & Pharma,Amgen,AMGN
+Biotech & Pharma,Merck ,MRK
+Biotech & Pharma,AstraZeneca,AZN
+Biotech & Pharma,Abbot Laboratories,ABT
+Biotech & Pharma,Amgen,AMGN
+Biotech & Pharma,Johnson&Johnson,JNJ
+Biotech & Pharma,Pfizer,PFE
+Biotech & Pharma,AmerisourceBergen,ABC
+Biotech & Pharma,Filead Sciences,GILD
+Biotech & Pharma,AbbVie Inc.,ABBV
+Biotech & Pharma,Bristol - Myers Squibb,BMY
+Biotech & Pharma,Gilead Sciences,GILD
+Biotech & Pharma,Eli Lilly and Company,LLY
+Biotech & Pharma,Regeneron,REGN
+Biotech & Pharma,Wallgreens Boots Alliance,WBA
+Biotech & Pharma,Zoetis ,ZTS

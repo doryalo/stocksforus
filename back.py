@@ -87,7 +87,7 @@ def alert_stocks_sma_crossing(stocks, slow_sma=None, fast_sma=None):
             exc=False
             cerebro = bt.Cerebro()  # create a "Cerebro" engine instance
             data = bt.feeds.YahooFinanceData(dataname=stock,
-                                             fromdate=datetime(year=2019, month=1, day=1),
+                                             fromdate=datetime(year=2018, month=8, day=1),
                                              todate=datetime(year=2020, month=8, day=7))
             cerebro.adddata(data)  # Add the data feed
             SmaCross.initialize_bss()
@@ -174,12 +174,12 @@ if __name__ == '__main__':
         # stocks = ['FB','AMZN', 'AMD', 'GOOGL', 'ARM', 'NVDA', 'YNDX', 'MSFT', 'AAPL', 'CMCL', 'CMCSA', 'ABB', 'ABBV', 'ABC',
         #           'ABCB','SNAP','VZ', 'ASR.TO', 'WPM']
         # tier2_stocks = ['BMCH', 'EXPE', 'DRIO', 'XBIT', 'BLUE', ] #some airlines and biotech
-        stocks = snp500
+        madad_roey = pd.read_csv('/home/yoni/PycharmProjects/pythonProject/MadadRoey.csv')
+        stocks = list(madad_roey.loc[madad_roey.Sector.eq('Oil & Gas'), 'Symbol'])
         # stocks = tier3
     else:
         stocks = cmd_stock
-    #
-    # stocks = ['BMCH']
+    stocks = most_viewed_by_anaylsts
     # stocks = ['CTAS', 'CINF', 'BMCH','BLUE', 'CMPR', 'CBNK', 'CCBG', 'CPLP', 'CSWC']
     # stocks = tier1 + tier2
     # stocks_bss_dict_13_26 = alert_stocks_sma_crossing(stocks, 13, 26)
